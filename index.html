@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15171e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>The Slot — WCS combos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15171e;          /* dim dance hall */
+    --surface:#1c1f29;
+    --card:#21242f;
+    --ink:#ece7df;         /* warm off-white */
+    --muted:#9a9488;
+    --accent:#d9a45b;      /* brass spotlight */
+    --accent-2:#c0743a;
+    --line:rgba(236,231,223,.10);
+    --radius:14px;
+    --maxw:1180px;
+    --display:"Bricolage Grotesque",system-ui,sans-serif;
+    --ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--ui);
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    padding:0 clamp(16px,4vw,40px) 80px;
+    padding-top:env(safe-area-inset-top);
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto}
+
+  /* ---- header / the slot ---- */
+  header{padding:clamp(28px,6vw,56px) 0 22px}
+  .wordmark{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:clamp(34px,7vw,64px);
+    letter-spacing:-.02em;
+    line-height:.95;
+    margin:0;
+  }
+  .wordmark .the{color:var(--muted);font-weight:600}
+  .sub{color:var(--muted);font-size:14px;margin:10px 0 0;letter-spacing:.01em}
+  /* the slot: the line WCS travels along */
+  .slot{position:relative;height:2px;background:var(--line);margin:22px 0 0;border-radius:2px;overflow:visible}
+  .slot::before{
+    content:"";position:absolute;top:50%;left:0;width:9px;height:9px;
+    margin-top:-4.5px;border-radius:50%;
+    background:var(--accent);box-shadow:0 0 14px 2px rgba(217,164,91,.6);
+    animation:travel 7s cubic-bezier(.55,0,.45,1) infinite;
+  }
+  @keyframes travel{
+    0%,100%{left:0}
+    50%{left:100%}
+  }
+
+  /* ---- controls ---- */
+  .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:22px 0 26px}
+  .search{
+    flex:1 1 240px;min-width:0;display:flex;align-items:center;gap:10px;
+    background:var(--surface);border:1px solid var(--line);border-radius:999px;
+    padding:11px 16px;color:var(--ink);
+  }
+  .search svg{flex:none;opacity:.6}
+  .search input{
+    flex:1;min-width:0;background:none;border:0;outline:0;color:inherit;
+    font:inherit;font-size:15px;
+  }
+  .search input::placeholder{color:var(--muted)}
+  .count{color:var(--muted);font-size:13px;white-space:nowrap}
+
+  /* ---- grid ---- */
+  .grid{
+    display:grid;gap:clamp(12px,2vw,20px);
+    grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));
+  }
+  .card{
+    appearance:none;text-align:left;padding:0;cursor:pointer;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;color:inherit;font:inherit;
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-3px);border-color:rgba(217,164,91,.45);
+    box-shadow:0 12px 30px -16px rgba(0,0,0,.8)}
+  .card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .thumb{position:relative;width:100%;aspect-ratio:16/9;background:#0d0e12;display:block}
+  .thumb video{width:100%;height:100%;object-fit:cover;display:block}
+  .play{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    opacity:0;transition:opacity .18s ease;pointer-events:none;
+    background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.35))
+  }
+  .card:hover .play,.card:focus-visible .play{opacity:1}
+  .play span{
+    width:46px;height:46px;border-radius:50%;background:rgba(21,23,30,.7);
+    border:1px solid rgba(236,231,223,.4);display:grid;place-items:center
+  }
+  .meta{padding:13px 15px 15px}
+  .title{font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:-.01em;margin:0}
+  .src{color:var(--muted);font-size:12.5px;margin:5px 0 0;display:flex;align-items:center;gap:6px}
+  .src .dot{width:4px;height:4px;border-radius:50%;background:var(--accent);flex:none}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0 0}
+  .tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+
+  /* ---- empty / message states ---- */
+  .state{
+    border:1px dashed var(--line);border-radius:var(--radius);
+    padding:46px 26px;text-align:center;color:var(--muted)
+  }
+  .state h2{font-family:var(--display);color:var(--ink);font-size:20px;margin:0 0 8px}
+  .state code{background:var(--surface);border:1px solid var(--line);border-radius:7px;
+    padding:2px 7px;color:var(--ink);font-size:13px}
+  .hidden{display:none !important}
+
+  /* ---- lightbox ---- */
+  .lb{
+    position:fixed;inset:0;z-index:50;display:none;
+    background:rgba(8,9,12,.86);backdrop-filter:blur(6px);
+    padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    align-items:center;justify-content:center;
+  }
+  .lb.open{display:flex}
+  .lb-inner{width:min(900px,100%);max-height:100%;display:flex;flex-direction:column;gap:14px}
+  .lb-video{width:100%;border-radius:var(--radius);background:#000;max-height:64vh;
+    border:1px solid var(--line)}
+  .lb-bar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .lb-title{font-family:var(--display);font-weight:600;font-size:clamp(18px,3vw,24px);margin:0}
+  .lb-src{color:var(--muted);font-size:13px;margin:6px 0 0}
+  .btn{
+    appearance:none;cursor:pointer;text-decoration:none;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--accent);color:#211606;font-weight:700;font-family:var(--ui);
+    border:0;border-radius:999px;padding:12px 20px;font-size:14px;
+    transition:background .15s ease,transform .15s ease;
+  }
+  .btn:hover{background:var(--accent-2);transform:translateY(-1px)}
+  .btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .lb-close{
+    position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:16px;
+    width:42px;height:42px;border-radius:50%;border:1px solid var(--line);
+    background:rgba(28,31,41,.8);color:var(--ink);cursor:pointer;font-size:20px;
+    display:grid;place-items:center
+  }
+  .lb-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  @media (prefers-reduced-motion: reduce){
+    .slot::before{animation:none;left:0}
+    .card{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 class="wordmark"><span class="the">the</span> slot</h1>
+    <p class="sub" id="subtitle">West Coast Swing — combo recaps</p>
+    <div class="slot" aria-hidden="true"></div>
+  </header>
+
+  <div class="controls">
+    <label class="search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+      </svg>
+      <input id="search" type="search" placeholder="Search combos or tags…" autocomplete="off" spellcheck="false">
+    </label>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div id="grid" class="grid"></div>
+  <div id="empty" class="state hidden"></div>
+</div>
+
+<!-- lightbox -->
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Combo viewer">
+  <button class="lb-close" id="lbClose" aria-label="Close">×</button>
+  <div class="lb-inner">
+    <video class="lb-video" id="lbVideo" controls playsinline loop></video>
+    <div class="lb-bar">
+      <div>
+        <h2 class="lb-title" id="lbTitle"></h2>
+        <p class="lb-src" id="lbSrc"></p>
+      </div>
+      <a class="btn" id="lbLink" target="_blank" rel="noopener">
+        Open source video
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M7 17 17 7M9 7h8v8"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+const CONFIG = {
+  // Edit these two lines to rename your wall.
+  subtitle: "West Coast Swing — combo recaps",
+  dataUrl: "combos.json",
+};
+
+const grid = document.getElementById('grid');
+const emptyEl = document.getElementById('empty');
+const countEl = document.getElementById('count');
+const searchEl = document.getElementById('search');
+document.getElementById('subtitle').textContent = CONFIG.subtitle;
+
+let combos = [];
+
+// Play only the clips currently on screen — keeps a big wall smooth.
+const io = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    const v = e.target;
+    if (e.isIntersecting) { v.play().catch(()=>{}); }
+    else { v.pause(); }
+  }
+}, { rootMargin: '200px 0px', threshold: 0.1 });
+
+function showState(html){
+  grid.classList.add('hidden');
+  emptyEl.classList.remove('hidden');
+  emptyEl.innerHTML = html;
+}
+
+function render(list){
+  grid.innerHTML = '';
+  io.disconnect();
+  for (const c of list){
+    const card = document.createElement('button');
+    card.className = 'card';
+    card.type = 'button';
+    const tagsHtml = (c.tags && c.tags.length)
+      ? `<div class="tags">${c.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>` : '';
+    card.innerHTML = `
+      <span class="thumb">
+        <video muted loop playsinline preload="metadata" src="${esc(c.file)}"></video>
+        <span class="play"><span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </span></span>
+      </span>
+      <span class="meta">
+        <p class="title">${esc(c.title)}</p>
+        ${c.source_label ? `<p class="src"><span class="dot"></span>${esc(c.source_label)}</p>` : ''}
+        ${tagsHtml}
+      </span>`;
+    card.addEventListener('click', () => openLightbox(c));
+    grid.appendChild(card);
+    io.observe(card.querySelector('video'));
+  }
+}
+
+function applyFilter(){
+  const q = searchEl.value.trim().toLowerCase();
+  const list = !q ? combos : combos.filter(c => {
+    const hay = (c.title + ' ' + (c.tags||[]).join(' ') + ' ' + (c.source_label||'')).toLowerCase();
+    return hay.includes(q);
+  });
+  countEl.textContent = `${list.length} combo${list.length===1?'':'s'}`;
+  if (combos.length && list.length === 0){
+    showState(`<h2>No matches</h2><p>Nothing matches “${esc(searchEl.value)}”. Try a different word.</p>`);
+  } else {
+    emptyEl.classList.add('hidden');
+    grid.classList.remove('hidden');
+    render(list);
+  }
+}
+
+searchEl.addEventListener('input', applyFilter);
+
+// ---- lightbox ----
+const lb = document.getElementById('lb');
+const lbVideo = document.getElementById('lbVideo');
+const lbTitle = document.getElementById('lbTitle');
+const lbSrc = document.getElementById('lbSrc');
+const lbLink = document.getElementById('lbLink');
+
+function openLightbox(c){
+  lbVideo.src = c.file;
+  lbTitle.textContent = c.title;
+  lbSrc.textContent = c.source_label || '';
+  lbSrc.style.display = c.source_label ? '' : 'none';
+  if (c.video_url){ lbLink.href = c.video_url; lbLink.style.display=''; }
+  else { lbLink.style.display='none'; }
+  lb.classList.add('open');
+  lbVideo.play().catch(()=>{});
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  lb.classList.remove('open');
+  lbVideo.pause(); lbVideo.removeAttribute('src'); lbVideo.load();
+  document.body.style.overflow='';
+}
+document.getElementById('lbClose').addEventListener('click', closeLightbox);
+lb.addEventListener('click', (e)=>{ if (e.target === lb) closeLightbox(); });
+document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && lb.classList.contains('open')) closeLightbox(); });
+
+function esc(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+// ---- load ----
+fetch(CONFIG.dataUrl, {cache:'no-store'})
+  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+  .then(data => {
+    combos = Array.isArray(data) ? data.slice().reverse() : []; // newest first
+    if (!combos.length){
+      countEl.textContent = '0 combos';
+      showState(`<h2>No combos yet</h2><p>Add your first one from your computer:</p>
+        <p style="margin-top:12px"><code>python3 add_combo.py --video lesson.mp4 --start 12:30 --end 12:38 --title "Whip with tuck" --url "https://drive.google.com/…"</code></p>`);
+      return;
+    }
+    applyFilter();
+  })
+  .catch(() => {
+    countEl.textContent = '';
+    showState(`<h2>Couldn’t load combos.json</h2>
+      <p>Open this page through a web server, not as a file. Locally:
+      <code>python3 -m http.server</code> then visit <code>localhost:8000</code>.</p>`);
+  });
+</script>
+</body>
+</html>
