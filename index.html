@@ -311,8 +311,8 @@ fetch(CONFIG.dataUrl, {cache:'no-store'})
     combos = Array.isArray(data) ? data.slice().reverse() : []; // newest first
     if (!combos.length){
       countEl.textContent = '0 combos';
-      showState(`<h2>No combos yet</h2><p>Add your first one from your computer:</p>
-        <p style="margin-top:12px"><code>python3 add_combo.py --video lesson.mp4 --start 12:30 --end 12:38 --title "Whip with tuck" --url "https://drive.google.com/…"</code></p>`);
+      showState(`<h2>No combos yet</h2><p>List your combos in <code>combos.txt</code> (one <code>URL&nbsp;START&nbsp;END</code> per line), then run:</p>
+        <p style="margin-top:12px"><code>python3 add_combo.py --batch combos.txt --publish</code></p>`);
       return;
     }
     applyFilter();

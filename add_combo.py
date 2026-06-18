@@ -1,22 +1,29 @@
 #!/usr/bin/env python3
 """
-Add one West Coast Swing combo to the wall.
+Add West Coast Swing combos to the wall — one at a time, or many at once.
 
-It cuts a segment out of a video, turns it into a small muted looping mp4,
-drops it in clips/, and appends an entry to combos.json. Refresh the page
-(or push to GitHub) and the combo appears.
+BULK (the easy way): put one combo per line in a text file, then run it.
+Each line is just:   URL  START  END
+Optionally:          URL  START  END  Title here  | tag1, tag2
 
-Example:
-    python3 add_combo.py \\
-        --video ~/Downloads/lesson3.mp4 \\
-        --start 12:30 --end 12:38 \\
-        --title "Whip with left side tuck" \\
-        --url "https://drive.google.com/file/d/XXXXXXXX/view" \\
-        --tags whip intermediate \\
-        --publish
+    python3 add_combo.py --batch combos.txt --publish
+
+The script downloads each source video straight from its Drive link (caching it,
+so the same lesson is fetched only once), clips every range, titles each clip from
+the lesson's own name + timestamp, and skips anything already added.
+
+SINGLE:
+    python3 add_combo.py --url "https://drive.google.com/file/d/XXXX/view" \\
+        --start 12:30 --end 12:38 --title "Whip with tuck" --tags whip
+
+Private Drive files are reached by borrowing your browser's Google login
+(--browser chrome by default). Close the browser first if it complains the
+cookie database is locked, or set the file to "Anyone with the link" and pass
+--no-cookies.
 """
 
 import argparse
+import glob
 import json
 import os
 import re
@@ -27,22 +34,20 @@ import uuid
 from datetime import date
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+CACHE = os.path.join(HERE, ".cache")
 
 
 def die(msg):
-    print(f"\n  ✗ {msg}\n", file=sys.stderr)
+    print(f"\n  \u2717 {msg}\n", file=sys.stderr)
     sys.exit(1)
 
 
 def parse_time(t):
-    """Accept seconds (75, 12.5) or clock (mm:ss, hh:mm:ss). Returns float seconds."""
+    """Seconds (75, 12.5) or clock (mm:ss, h:mm:ss) -> float seconds."""
     t = str(t).strip()
     if ":" in t:
-        parts = t.split(":")
-        if len(parts) > 3:
-            die(f"Bad time '{t}'")
         secs = 0.0
-        for p in parts:
+        for p in t.split(":"):
             secs = secs * 60 + float(p)
         return secs
     return float(t)
@@ -56,111 +61,228 @@ def fmt_clock(secs):
 
 
 def slugify(text):
-    s = re.sub(r"[^\w\s-]", "", text.lower()).strip()
+    s = re.sub(r"[^\w\s-]", "", str(text).lower()).strip()
     s = re.sub(r"[\s_-]+", "-", s)
     return s[:48] or "combo"
 
 
+def extract_file_id(url):
+    m = re.search(r"/d/([A-Za-z0-9_-]{10,})", url) or re.search(r"[?&]id=([A-Za-z0-9_-]{10,})", url)
+    return m.group(1) if m else None
+
+
+def parse_batch(path):
+    if not os.path.isfile(path):
+        die(f"Batch file not found: {path}")
+    jobs = []
+    with open(path, encoding="utf-8") as f:
+        for n, line in enumerate(f, 1):
+            s = line.strip()
+            if not s or s.startswith("#"):
+                continue
+            title, tags, left = None, [], s
+            if "|" in s:
+                left, rest = s.split("|", 1)
+                left = left.strip()
+                tags = [t.strip() for t in rest.replace("|", ",").split(",") if t.strip()]
+            toks = left.split()
+            if len(toks) < 3:
+                die(f"Line {n}: need at least 'URL START END' -> {s!r}")
+            if title is None and len(toks) > 3:
+                title = " ".join(toks[3:])
+            jobs.append({"url": toks[0], "start": toks[1], "end": toks[2],
+                         "title": title, "tags": tags, "line": n})
+    if not jobs:
+        die(f"No combos found in {path}.")
+    return jobs
+
+
+def find_cached_media(fid):
+    for p in sorted(glob.glob(os.path.join(CACHE, fid + ".*"))):
+        if not p.endswith((".info.json", ".part", ".ytdl")):
+            return p
+    return None
+
+
+def cached_title(fid):
+    j = os.path.join(CACHE, fid + ".info.json")
+    if os.path.isfile(j):
+        try:
+            with open(j, encoding="utf-8") as f:
+                return json.load(f).get("title")
+        except Exception:
+            pass
+    return None
+
+
+def ensure_video(url, browser, use_cookies):
+    """Return (local_media_path, human_source_name), downloading once and caching."""
+    fid = extract_file_id(url)
+    if not fid:
+        die(f"Couldn't find a Google Drive file id in: {url}")
+    os.makedirs(CACHE, exist_ok=True)
+    media = find_cached_media(fid)
+    if media:
+        return media, (cached_title(fid) or fid)
+
+    if not shutil.which("yt-dlp"):
+        die("yt-dlp not found. Install it:  pip install -U yt-dlp")
+    print("    downloading source video (first time for this lesson)...")
+    cmd = ["yt-dlp", "--no-playlist", "--write-info-json",
+           "-o", os.path.join(CACHE, fid + ".%(ext)s")]
+    if use_cookies:
+        cmd += ["--cookies-from-browser", browser]
+    cmd += [url]
+    res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    if res.returncode != 0:
+        tail = res.stderr.decode(errors="replace")[-1200:]
+        sys.stderr.write(tail + "\n")
+        die("Download failed. Try a different --browser, close the browser so its "
+            "cookies unlock, or set the file to 'Anyone with the link' and use --no-cookies.")
+    media = find_cached_media(fid)
+    if not media:
+        die("Download reported success but no media file appeared in .cache/")
+    return media, (cached_title(fid) or fid)
+
+
+def clean_name(name):
+    return re.sub(r"\.(mp4|mov|m4v|webm|avi|mkv)$", "", str(name), flags=re.I).strip()
+
+
+def make_clip(video, start, dur, width, crf, keep_audio, slug):
+    os.makedirs(os.path.join(HERE, "clips"), exist_ok=True)
+    out = os.path.join(HERE, "clips", slug + ".mp4")
+    cmd = ["ffmpeg", "-y", "-ss", f"{start:.3f}", "-i", video, "-t", f"{dur:.3f}",
+           "-vf", f"scale='min({width},iw)':-2", "-c:v", "libx264", "-preset", "veryfast",
+           "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart"]
+    cmd += (["-c:a", "aac", "-b:a", "96k"] if keep_audio else ["-an"])
+    cmd += [out]
+    res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    if res.returncode != 0:
+        sys.stderr.write(res.stderr.decode(errors="replace")[-1200:] + "\n")
+        die("ffmpeg failed (see above).")
+    return out
+
+
 def main():
-    ap = argparse.ArgumentParser(description="Add a combo clip to the wall.")
-    ap.add_argument("--video", required=True, help="Path to the source video file")
-    ap.add_argument("--start", required=True, help="Start time (e.g. 12:30 or 750)")
-    g = ap.add_mutually_exclusive_group(required=True)
-    g.add_argument("--end", help="End time (e.g. 12:38)")
-    g.add_argument("--duration", help="Clip length in seconds instead of --end")
-    ap.add_argument("--title", required=True, help="Short name shown on the card")
-    ap.add_argument("--url", required=True, help="Link to the source video (e.g. Google Drive)")
-    ap.add_argument("--tags", nargs="*", default=[], help="Optional tags, space-separated")
-    ap.add_argument("--label", help="Override the 'source · time' caption")
-    ap.add_argument("--width", type=int, default=540, help="Clip width in px (default 540)")
-    ap.add_argument("--crf", type=int, default=26, help="Quality, lower=better/bigger (default 26)")
-    ap.add_argument("--keep-audio", action="store_true", help="Keep audio (default: muted)")
+    ap = argparse.ArgumentParser(description="Add WCS combos to the wall.")
+    ap.add_argument("--batch", help="Text file: one 'URL START END [title] [| tags]' per line")
+    ap.add_argument("--url", help="Drive link (single mode)")
+    ap.add_argument("--start", help="Start time, e.g. 12:30")
+    ap.add_argument("--end", help="End time, e.g. 12:38")
+    ap.add_argument("--duration", help="Length in seconds instead of --end")
+    ap.add_argument("--title", help="Optional; auto-derived from the lesson name if omitted")
+    ap.add_argument("--tags", nargs="*", default=[])
+    ap.add_argument("--video", help="Use a local video file instead of downloading (single mode)")
+    ap.add_argument("--browser", default="chrome",
+                    help="Browser to borrow the Google login from (chrome/firefox/safari/edge/brave)")
+    ap.add_argument("--no-cookies", action="store_true", help="For 'Anyone with the link' files")
+    ap.add_argument("--width", type=int, default=540)
+    ap.add_argument("--crf", type=int, default=26)
+    ap.add_argument("--keep-audio", action="store_true")
+    ap.add_argument("--force", action="store_true", help="Add even if an identical clip exists")
     ap.add_argument("--json", default=os.path.join(HERE, "combos.json"))
-    ap.add_argument("--clips-dir", default=os.path.join(HERE, "clips"))
-    ap.add_argument("--publish", action="store_true", help="git add/commit/push after adding")
+    ap.add_argument("--publish", action="store_true", help="git push once after adding")
     args = ap.parse_args()
 
     if not shutil.which("ffmpeg"):
-        die("ffmpeg not found. Install it first (e.g. `brew install ffmpeg`).")
-    if not os.path.isfile(args.video):
-        die(f"Video not found: {args.video}")
+        die("ffmpeg not found. Install it first.")
 
-    start = parse_time(args.start)
-    if args.duration is not None:
-        dur = float(args.duration)
-        end = start + dur
+    if args.batch:
+        jobs = parse_batch(args.batch)
+    elif args.url or args.video:
+        if not args.start or not (args.end or args.duration):
+            die("Single mode needs --start and (--end or --duration).")
+        jobs = [{"url": args.url, "start": args.start, "end": args.end,
+                 "title": args.title, "tags": args.tags, "line": 0,
+                 "duration": args.duration, "video": args.video}]
     else:
-        end = parse_time(args.end)
-        dur = end - start
-    if dur <= 0:
-        die("End must be after start.")
-    if dur > 60:
-        print(f"  ! Heads up: {dur:.0f}s is a long loop; combos usually read best under ~12s.")
-
-    os.makedirs(args.clips_dir, exist_ok=True)
-    slug = f"{slugify(args.title)}-{uuid.uuid4().hex[:4]}"
-    out_path = os.path.join(args.clips_dir, slug + ".mp4")
-    rel_file = os.path.relpath(out_path, HERE).replace(os.sep, "/")
-
-    vf = f"scale='min({args.width},iw)':-2"
-    cmd = [
-        "ffmpeg", "-y", "-ss", f"{start:.3f}", "-i", args.video, "-t", f"{dur:.3f}",
-        "-vf", vf, "-c:v", "libx264", "-preset", "veryfast", "-crf", str(args.crf),
-        "-pix_fmt", "yuv420p", "-movflags", "+faststart",
-    ]
-    cmd += (["-c:a", "aac", "-b:a", "96k"] if args.keep_audio else ["-an"])
-    cmd += [out_path]
-
-    print(f"\n  Clipping {fmt_clock(start)}–{fmt_clock(end)} ({dur:.1f}s) → {rel_file}")
-    res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-    if res.returncode != 0:
-        sys.stderr.write(res.stderr.decode(errors="replace")[-1500:])
-        die("ffmpeg failed (see message above).")
-
-    size_kb = os.path.getsize(out_path) / 1024
-    label = args.label or f"{os.path.splitext(os.path.basename(args.video))[0]} · {fmt_clock(start)}"
-
-    entry = {
-        "id": slug,
-        "title": args.title,
-        "file": rel_file,
-        "video_url": args.url,
-        "source_label": label,
-        "tags": args.tags,
-        "added": date.today().isoformat(),
-    }
+        die("Give me --batch FILE, or --url/--video with --start/--end.")
 
     data = []
     if os.path.isfile(args.json):
         try:
-            with open(args.json) as f:
+            with open(args.json, encoding="utf-8") as f:
                 data = json.load(f)
         except json.JSONDecodeError:
-            die(f"{args.json} is not valid JSON. Fix or delete it and retry.")
-    data.append(entry)
-    with open(args.json, "w") as f:
+            die(f"{args.json} isn't valid JSON. Fix or delete it and retry.")
+    seen = {(e.get("source_id"), round(e.get("start", -1), 2), round(e.get("end", -1), 2))
+            for e in data}
+
+    added = skipped = 0
+    for i, job in enumerate(jobs, 1):
+        tag = f"[{i}/{len(jobs)}]"
+        start = parse_time(job["start"])
+        if job.get("duration"):
+            end = start + float(job["duration"])
+        elif job.get("end"):
+            end = parse_time(job["end"])
+        else:
+            die(f"{tag} missing end/duration")
+        if end <= start:
+            die(f"{tag} end must be after start")
+
+        local_video = job.get("video")
+        fid = extract_file_id(job["url"]) if job.get("url") else None
+        key = (fid, round(start, 2), round(end, 2))
+        if not args.force and key in seen:
+            print(f"  {tag} skip (already added): {fmt_clock(start)}-{fmt_clock(end)}")
+            skipped += 1
+            continue
+
+        if local_video:
+            if not os.path.isfile(local_video):
+                die(f"{tag} video not found: {local_video}")
+            source_name = clean_name(os.path.basename(local_video))
+        else:
+            print(f"  {tag} {fmt_clock(start)}-{fmt_clock(end)}")
+            local_video, source_name = ensure_video(job["url"], args.browser, not args.no_cookies)
+            source_name = clean_name(source_name)
+
+        title = job.get("title") or f"{source_name} \u00b7 {fmt_clock(start)}"
+        slug = f"{slugify(title)}-{uuid.uuid4().hex[:4]}"
+        out = make_clip(local_video, start, end - start, args.width, args.crf,
+                        args.keep_audio, slug)
+        size_kb = os.path.getsize(out) / 1024
+
+        data.append({
+            "id": slug,
+            "title": title,
+            "file": os.path.relpath(out, HERE).replace(os.sep, "/"),
+            "video_url": job.get("url") or "",
+            "source_label": f"{source_name} \u00b7 {fmt_clock(start)}",
+            "tags": job.get("tags", []),
+            "source_id": fid,
+            "start": round(start, 2),
+            "end": round(end, 2),
+            "added": date.today().isoformat(),
+        })
+        seen.add(key)
+        added += 1
+        print(f"     \u2713 {title}  ({size_kb:.0f} KB)")
+
+    with open(args.json, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
         f.write("\n")
 
-    print(f"  ✓ Added “{args.title}”  ({size_kb:.0f} KB) — {len(data)} combos total")
+    print(f"\n  Done: {added} added, {skipped} skipped, {len(data)} total.")
+    if added and args.publish:
+        publish(added)
+    elif added:
+        print("  Preview:  python3 -m http.server   (open localhost:8000)")
+        print("  Publish:  git add -A && git commit -m \"add combos\" && git push\n")
 
-    if args.publish:
-        publish(out_path, args.json, args.title)
-    else:
-        print("  → Preview locally:  python3 -m http.server   (then open localhost:8000)")
-        print("  → When happy, publish with:  git add -A && git commit -m \"add combo\" && git push\n")
 
-
-def publish(clip_path, json_path, title):
+def publish(n):
     if not shutil.which("git"):
         die("git not found, so --publish can't run.")
     try:
         subprocess.run(["git", "add", "-A"], cwd=HERE, check=True)
-        subprocess.run(["git", "commit", "-m", f"add combo: {title}"], cwd=HERE, check=True)
+        subprocess.run(["git", "commit", "-m", f"add {n} combo(s)"], cwd=HERE, check=True)
         subprocess.run(["git", "push"], cwd=HERE, check=True)
-        print("  ✓ Pushed to GitHub — your phone will see it in a moment.\n")
+        print("  \u2713 Pushed to GitHub.\n")
     except subprocess.CalledProcessError:
-        die("git push failed. Is this folder a git repo with a remote set up? See README.")
+        die("git push failed. Is this a git repo with a remote? See README.")
 
 
 if __name__ == "__main__":

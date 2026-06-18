@@ -1,0 +1,11 @@
+# ─────────────────────────────────────────────────────────────────────
+#  Your combo list.  One per line:   URL  START  END
+#  Optional title and tags:          URL  START  END  Title here | tag1, tag2
+#  Times are mm:ss, h:mm:ss, or plain seconds.  Lines starting with # are ignored.
+#
+#  Then run:   python3 add_combo.py --batch combos.txt --publish
+#  Re-running is safe — combos already added are skipped.
+# ─────────────────────────────────────────────────────────────────────
+
+# https://drive.google.com/file/d/PASTE_FILE_ID/view   12:30   12:38
+# https://drive.google.com/file/d/PASTE_FILE_ID/view   14:02   14:11   Left side pass into whip | pass, whip
