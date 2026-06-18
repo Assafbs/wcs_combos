@@ -1,11 +1,35 @@
 # ─────────────────────────────────────────────────────────────────────
-#  Your combo list.  One per line:   URL  START  END
-#  Optional title and tags:          URL  START  END  Title here | tag1, tag2
-#  Times are mm:ss, h:mm:ss, or plain seconds.  Lines starting with # are ignored.
+#  Your combo list.
 #
-#  Then run:   python3 add_combo.py --batch combos.txt --publish
+#  GOOGLE PHOTOS (and most sources): download each lesson video once
+#  (in Photos: open the video → ⋮ → Download), put it in lessons/, then
+#  declare it with an "@" line and list time ranges under it:
+#
+#     @ lessons/sat-intermediate.mp4 | https://photos.google.com/album/.../photo/...
+#     2:05  2:10   Sugar push variation | push
+#     3:40  3:52   Left side pass | pass, beginner
+#
+#  GOOGLE DRIVE links can be auto-downloaded, one per line:
+#     https://drive.google.com/file/d/FILE_ID/view   12:30  12:38  Title | tag
+#
+#  Times are mm:ss, h:mm:ss, or seconds. Title and "| tags" are optional.
+#  Run:   python3 add_combo.py --batch combos.txt --publish
 #  Re-running is safe — combos already added are skipped.
 # ─────────────────────────────────────────────────────────────────────
 
-# https://drive.google.com/file/d/PASTE_FILE_ID/view   12:30   12:38
-# https://drive.google.com/file/d/PASTE_FILE_ID/view   14:02   14:11   Left side pass into whip | pass, whip
+# @ lessons/my-lesson.mp4 | https://photos.google.com/album/PASTE/photo/PASTE
+# 12:30  12:38
+# 14:02  14:11   Left side pass into whip | pass, whip
+
+@ lessons/20231129_210026.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipPhdLZ5Uwzuh_UVorA2PgV1Xu-ogePziReQtYEt
+2:05	2:10
+2:10	2:14
+2:13	2:19
+
+@ lessons/20231129_210324.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipMru7AdLts1a_FKBEWKFLq0l-H19UJeDzl8drNf
+0:21	0:28
+1:16	1:25
+
+@ lessons/20231129_210324.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipMcrGJSgQYFKXCq-uEwkXyy3nJGr37HqD8mLLA4
+2:50	2:53 Check and cross
+2:58	3:05 Brush

@@ -2,24 +2,36 @@
 """
 Add West Coast Swing combos to the wall — one at a time, or many at once.
 
-BULK (the easy way): put one combo per line in a text file, then run it.
-Each line is just:   URL  START  END
-Optionally:          URL  START  END  Title here  | tag1, tag2
+BULK (the easy way): list your combos in a text file, then run it.
 
-    python3 add_combo.py --batch combos.txt --publish
+  Google Photos (and most sources): download each lesson video once, drop it in
+  lessons/, and declare it with an "@" line; then list time ranges under it:
 
-The script downloads each source video straight from its Drive link (caching it,
-so the same lesson is fetched only once), clips every range, titles each clip from
-the lesson's own name + timestamp, and skips anything already added.
+      @ lessons/sat-intermediate.mp4 | https://photos.google.com/album/.../photo/...
+      2:05  2:10   Sugar push variation | push
+      3:40  3:52   Left side pass | pass, beginner
+
+      @ lessons/sunday-advanced.mp4 | https://photos.google.com/album/.../photo/...
+      1:10  1:22   Whip with tuck
+
+  Google Drive only: a link can be fetched automatically, one combo per line:
+
+      https://drive.google.com/file/d/XXXX/view   12:30   12:38   Optional title | tag
+
+Then:  python3 add_combo.py --batch combos.txt --publish
+
+The "@" line pairs a local video with the link shown on the card's "Open source
+video" button. Time ranges are mm:ss, h:mm:ss, or seconds. Title and "| tags" are
+optional — leave them off and the clip is named after the lesson + timestamp.
+Re-running is safe: anything already added is skipped.
 
 SINGLE:
-    python3 add_combo.py --url "https://drive.google.com/file/d/XXXX/view" \\
-        --start 12:30 --end 12:38 --title "Whip with tuck" --tags whip
+    python3 add_combo.py --video lessons/sat.mp4 --start 12:30 --end 12:38 \\
+        --url "https://photos.google.com/..." --title "Whip with tuck" --tags whip
 
-Private Drive files are reached by borrowing your browser's Google login
-(--browser chrome by default). Close the browser first if it complains the
-cookie database is locked, or set the file to "Anyone with the link" and pass
---no-cookies.
+Why download first? Google Photos has no API to fetch your existing videos by link
+(and yt-dlp doesn't support Photos), so the video has to be local. Drive links can
+still be auto-downloaded via yt-dlp, which borrows your browser's Google login.
 """
 
 import argparse
@@ -75,23 +87,50 @@ def parse_batch(path):
     if not os.path.isfile(path):
         die(f"Batch file not found: {path}")
     jobs = []
+    cur_video = cur_url = None
     with open(path, encoding="utf-8") as f:
         for n, line in enumerate(f, 1):
             s = line.strip()
             if not s or s.startswith("#"):
                 continue
+
+            # "@ lessons/file.mp4 | https://photos.google.com/..."  declares a lesson
+            if s.startswith("@"):
+                decl = s[1:].strip()
+                if "|" in decl:
+                    vpart, upart = decl.split("|", 1)
+                    cur_video, cur_url = os.path.expanduser(vpart.strip()), (upart.strip() or None)
+                else:
+                    cur_video, cur_url = os.path.expanduser(decl), None
+                continue
+
             title, tags, left = None, [], s
             if "|" in s:
                 left, rest = s.split("|", 1)
                 left = left.strip()
                 tags = [t.strip() for t in rest.replace("|", ",").split(",") if t.strip()]
             toks = left.split()
-            if len(toks) < 3:
-                die(f"Line {n}: need at least 'URL START END' -> {s!r}")
-            if title is None and len(toks) > 3:
-                title = " ".join(toks[3:])
-            jobs.append({"url": toks[0], "start": toks[1], "end": toks[2],
-                         "title": title, "tags": tags, "line": n})
+            first = toks[0] if toks else ""
+
+            if first.startswith(("http://", "https://")):
+                # standalone link line (e.g. a Google Drive auto-download)
+                if len(toks) < 3:
+                    die(f"Line {n}: need 'URL START END' -> {s!r}")
+                if title is None and len(toks) > 3:
+                    title = " ".join(toks[3:])
+                jobs.append({"url": toks[0], "start": toks[1], "end": toks[2],
+                             "title": title, "tags": tags, "line": n})
+            else:
+                # combo under the current @lesson:  START END [title]
+                if not cur_video:
+                    die(f"Line {n}: a combo appears before any '@ lesson' line -> {s!r}")
+                if len(toks) < 2:
+                    die(f"Line {n}: need 'START END [title]' -> {s!r}")
+                if title is None and len(toks) > 2:
+                    title = " ".join(toks[2:])
+                jobs.append({"video": cur_video, "url": cur_url,
+                             "start": toks[0], "end": toks[1],
+                             "title": title, "tags": tags, "line": n})
     if not jobs:
         die(f"No combos found in {path}.")
     return jobs
@@ -119,7 +158,10 @@ def ensure_video(url, browser, use_cookies):
     """Return (local_media_path, human_source_name), downloading once and caching."""
     fid = extract_file_id(url)
     if not fid:
-        die(f"Couldn't find a Google Drive file id in: {url}")
+        die(f"Can't auto-download this link: {url}\n"
+            "    Only Google Drive links can be fetched automatically. For Google Photos\n"
+            "    (or anything else), download the video once and point to the local file\n"
+            "    with an '@ lessons/file.mp4 | <link>' line in your batch, or --video.")
     os.makedirs(CACHE, exist_ok=True)
     media = find_cached_media(fid)
     if media:
@@ -161,6 +203,11 @@ def make_clip(video, start, dur, width, crf, keep_audio, slug):
     if res.returncode != 0:
         sys.stderr.write(res.stderr.decode(errors="replace")[-1200:] + "\n")
         die("ffmpeg failed (see above).")
+    if not os.path.isfile(out) or os.path.getsize(out) < 2048:
+        if os.path.isfile(out):
+            os.remove(out)
+        die("Produced an empty clip — the time range is probably past the end of the "
+            "video, or start/end are reversed. Double-check the timestamps.")
     return out
 
 
@@ -224,7 +271,8 @@ def main():
 
         local_video = job.get("video")
         fid = extract_file_id(job["url"]) if job.get("url") else None
-        key = (fid, round(start, 2), round(end, 2))
+        source_key = os.path.basename(local_video) if local_video else fid
+        key = (source_key, round(start, 2), round(end, 2))
         if not args.force and key in seen:
             print(f"  {tag} skip (already added): {fmt_clock(start)}-{fmt_clock(end)}")
             skipped += 1
@@ -252,7 +300,7 @@ def main():
             "video_url": job.get("url") or "",
             "source_label": f"{source_name} \u00b7 {fmt_clock(start)}",
             "tags": job.get("tags", []),
-            "source_id": fid,
+            "source_id": source_key,
             "start": round(start, 2),
             "end": round(end, 2),
             "added": date.today().isoformat(),
