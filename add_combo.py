@@ -270,7 +270,8 @@ def main():
     seen = {(e.get("source_id"), round(e.get("start", -1), 2), round(e.get("end", -1), 2)): i
             for i, e in enumerate(data)}
 
-    added = updated = skipped = 0
+    added = updated = skipped = removed = 0
+    declared_keys = set()
     for i, job in enumerate(jobs, 1):
         tag = f"[{i}/{len(jobs)}]"
         start = parse_time(job["start"])
@@ -287,6 +288,7 @@ def main():
         fid = extract_file_id(job["url"]) if job.get("url") else None
         source_key = os.path.basename(local_video) if local_video else fid
         key = (source_key, round(start, 2), round(end, 2))
+        declared_keys.add(key)
         if not args.force and key in seen:
             existing = data[seen[key]]
             new_title = job.get("title")
@@ -314,7 +316,7 @@ def main():
             local_video, source_name = ensure_video(job["url"], args.browser, not args.no_cookies)
             source_name = clean_name(source_name)
 
-        title = job.get("title") or f"{source_name} \u00b7 {fmt_clock(start)}"
+        title = job.get("title") or f"{source_name} \u00b7 {fmt_clock(start)}\u2013{fmt_clock(end)}"
         slug = f"{slugify(title)}-{uuid.uuid4().hex[:4]}"
         out = make_clip(local_video, start, end - start, args.width, args.crf,
                         args.keep_audio, slug)
@@ -325,7 +327,7 @@ def main():
             "title": title,
             "file": os.path.relpath(out, HERE).replace(os.sep, "/"),
             "video_url": normalize_video_url(job.get("url") or ""),
-            "source_label": f"{source_name} \u00b7 {fmt_clock(start)}",
+            "source_label": f"{source_name} \u00b7 {fmt_clock(start)}\u2013{fmt_clock(end)}",
             "tags": job.get("tags", []),
             "source_id": source_key,
             "start": round(start, 2),
@@ -336,11 +338,30 @@ def main():
         added += 1
         print(f"     \u2713 {title}  ({size_kb:.0f} KB)")
 
+    if args.batch:
+        kept = []
+        for entry in data:
+            k = (entry.get("source_id"),
+                 round(entry.get("start", -1), 2),
+                 round(entry.get("end", -1), 2))
+            if k in declared_keys:
+                kept.append(entry)
+            else:
+                clip = os.path.join(HERE, entry.get("file", ""))
+                if os.path.isfile(clip):
+                    os.remove(clip)
+                print(f"  ✗ removed: {entry['title']}")
+                removed += 1
+        data = kept
+
     with open(args.json, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
         f.write("\n")
 
-    print(f"\n  Done: {added} added, {updated} updated, {skipped} skipped, {len(data)} total.")
+    parts = [f"{added} added", f"{updated} updated", f"{skipped} skipped"]
+    if removed:
+        parts.append(f"{removed} removed")
+    print(f"\n  Done: {', '.join(parts)}, {len(data)} total.")
     if added and args.publish:
         publish(added)
     elif added:
