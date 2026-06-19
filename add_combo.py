@@ -83,6 +83,20 @@ def extract_file_id(url):
     return m.group(1) if m else None
 
 
+def normalize_video_url(url):
+    """Convert album-context Google Photos URLs to direct photo URLs.
+
+    photos.google.com/album/{albumId}/photo/{photoId}  →  photos.google.com/photo/{photoId}
+    The album-context form opens the album (not the video) in the Android app.
+    """
+    if not url:
+        return url
+    m = re.search(r"photos\.google\.com/album/[^/]+/photo/([A-Za-z0-9_-]+)", url)
+    if m:
+        return f"https://photos.google.com/photo/{m.group(1)}"
+    return url
+
+
 def parse_batch(path):
     if not os.path.isfile(path):
         die(f"Batch file not found: {path}")
@@ -297,7 +311,7 @@ def main():
             "id": slug,
             "title": title,
             "file": os.path.relpath(out, HERE).replace(os.sep, "/"),
-            "video_url": job.get("url") or "",
+            "video_url": normalize_video_url(job.get("url") or ""),
             "source_label": f"{source_name} \u00b7 {fmt_clock(start)}",
             "tags": job.get("tags", []),
             "source_id": source_key,
