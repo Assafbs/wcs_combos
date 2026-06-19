@@ -17,9 +17,7 @@
 #  Re-running is safe — combos already added are skipped.
 # ─────────────────────────────────────────────────────────────────────
 
-# @ lessons/my-lesson.mp4 | https://photos.google.com/album/PASTE/photo/PASTE
-# 12:30  12:38
-# 14:02  14:11   Left side pass into whip | pass, whip
+# KK Team
 
 @ lessons/20231129_210026.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipPhdLZ5Uwzuh_UVorA2PgV1Xu-ogePziReQtYEt
 2:05	2:10
@@ -50,3 +48,35 @@
 0:47	0:54 Basic Promenade | Promenade
 2:05	2:10 | Promenade, Ronde
 3:08	3:18 Infinite promenade | Promenade
+
+@ lessons/20240131_210048.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipO6BoCyRkI5e9ZlE4U4KajDgD8_CY1S9-yIF7LO
+0:22	0:27 Samba step | Footwork
+1:08	1:11 Jive | Footwork
+
+@ lessons/20240131_210606.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipM4gvts2rvEAwhQtwA9DUQNsfK7jI6qJdErFkDP
+0:00	0:07 | Footwork
+
+@ lessons/20240306_210606.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipMoX-Mo5s9KNNDdCSHw_MaXmr7EYLTdq_5JSxLJ
+6:44	6:50
+
+@ lessons/20240327_210526.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipOPeVYsaMWOx63qIfGoSTsTZ-GsqQrK0P9LORDb
+4:36	4:40
+
+@ lessons/20240403_210121.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipNK4-wA-06ta2QXTx_UclXttlMDsGRVODPfku-Q
+2:55	3:00 Double outside turn
+4:09	4:15 Telemark
+
+@ lessons/20240410_210022.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipNoQUcepUASBfHDr46YgH3S1ERblvLqmgXNYqjr
+2:58	3:14
+
+@ lessons/20240417_210211.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipOZdvXJKkWhY2Pyz6C0K4OOB7HywmT3YWsldfoG
+5:59	6:08
+
+@ lessons/20240424_205852.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipMoAxFdRlC_CM0roRdqY63d7O_n8EydAeJAyc91
+1:07	1:11 | Duck
+4:51	4:59 | Duck
+
+@ lessons/20240515_205927.mp4 | https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipOaF2fex27wK6GARlydvGEcJcwVQ0XwaqZ5qOKV
+3:38	3:44 | Promenade
+
+# Stopped at https://photos.google.com/album/AF1QipP-5lE_BAGBs9zOpTo8n3CZu5gJ-FDzFazo-dkA/photo/AF1QipO9y_lga3AmMT9GSCkQZyKk-ANqy9pSfvyVz_Ac
