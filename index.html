@@ -107,12 +107,8 @@
     width:46px;height:46px;border-radius:50%;background:rgba(21,23,30,.7);
     border:1px solid rgba(236,231,223,.4);display:grid;place-items:center
   }
-  .meta{padding:14px 20px 16px;display:block}
-  .title{font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:-.01em;margin:0}
-  .src{color:var(--muted);font-size:12.5px;margin:5px 0 0;display:flex;align-items:center;gap:6px}
-  .src .dot{width:4px;height:4px;border-radius:50%;background:var(--accent);flex:none}
-  .tags{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0 0}
-  .tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 9px}
+  .lb-tags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+  .tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
 
   /* ---- empty / message states ---- */
   .state{
@@ -192,6 +188,7 @@
       <div>
         <h2 class="lb-title" id="lbTitle"></h2>
         <p class="lb-src" id="lbSrc"></p>
+        <div id="lbTags" class="lb-tags"></div>
       </div>
       <a class="btn" id="lbLink" target="_blank" rel="noopener">
         Open source video
@@ -240,19 +237,12 @@ function render(list){
     const card = document.createElement('button');
     card.className = 'card';
     card.type = 'button';
-    const tagsHtml = (c.tags && c.tags.length)
-      ? `<div class="tags">${c.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>` : '';
     card.innerHTML = `
       <span class="thumb">
         <video muted loop playsinline preload="metadata" src="${esc(c.file)}"></video>
         <span class="play"><span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </span></span>
-      </span>
-      <span class="meta">
-        <p class="title">${esc(c.title)}</p>
-        ${c.source_label ? `<p class="src"><span class="dot"></span>${esc(c.source_label)}</p>` : ''}
-        ${tagsHtml}
       </span>`;
     card.addEventListener('click', () => openLightbox(c));
     grid.appendChild(card);
@@ -291,6 +281,7 @@ const lb = document.getElementById('lb');
 const lbVideo = document.getElementById('lbVideo');
 const lbTitle = document.getElementById('lbTitle');
 const lbSrc = document.getElementById('lbSrc');
+const lbTags = document.getElementById('lbTags');
 const lbLink = document.getElementById('lbLink');
 
 function openLightbox(c){
@@ -298,6 +289,10 @@ function openLightbox(c){
   lbTitle.textContent = c.title;
   lbSrc.textContent = c.source_label || '';
   lbSrc.style.display = c.source_label ? '' : 'none';
+  if (c.tags && c.tags.length){
+    lbTags.innerHTML = c.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+    lbTags.style.display = '';
+  } else { lbTags.innerHTML=''; lbTags.style.display='none'; }
   if (c.video_url){ lbLink.href = c.video_url; lbLink.style.display=''; }
   else { lbLink.style.display='none'; }
   lb.classList.add('open');
