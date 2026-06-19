@@ -83,6 +83,9 @@
     display:grid;gap:clamp(12px,2vw,20px);
     grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));
   }
+  @media (max-width:540px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+  }
   .card{
     appearance:none;text-align:left;padding:0;cursor:pointer;
     background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
@@ -104,7 +107,7 @@
     width:46px;height:46px;border-radius:50%;background:rgba(21,23,30,.7);
     border:1px solid rgba(236,231,223,.4);display:grid;place-items:center
   }
-  .meta{padding:14px 20px 16px}
+  .meta{padding:14px 20px 16px;display:block}
   .title{font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:-.01em;margin:0}
   .src{color:var(--muted);font-size:12.5px;margin:5px 0 0;display:flex;align-items:center;gap:6px}
   .src .dot{width:4px;height:4px;border-radius:50%;background:var(--accent);flex:none}
@@ -253,7 +256,15 @@ function render(list){
       </span>`;
     card.addEventListener('click', () => openLightbox(c));
     grid.appendChild(card);
-    io.observe(card.querySelector('video'));
+    const v = card.querySelector('video');
+    v.addEventListener('loadedmetadata', () => {
+      if (v.videoHeight > v.videoWidth) {
+        v.parentElement.style.aspectRatio = `${v.videoWidth} / ${Math.round(v.videoHeight * 0.8)}`;
+        v.style.height = '100%';
+        v.style.objectFit = 'cover';
+      }
+    }, { once: true });
+    io.observe(v);
   }
 }
 
