@@ -49,7 +49,7 @@
   },
   {
     "id": "20231129-210324-116-e1d7",
-    "title": "20231129_210324 · 1:16",
+    "title": "Pencil sharpener",
     "file": "clips/20231129-210324-116-e1d7.mp4",
     "video_url": "https://photos.google.com/photo/AF1QipMru7AdLts1a_FKBEWKFLq0l-H19UJeDzl8drNf",
     "source_label": "20231129_210324 · 1:16",
@@ -81,6 +81,34 @@
     "source_id": "20231206_210252.mp4",
     "start": 178.0,
     "end": 185.0,
+    "added": "2026-06-19"
+  },
+  {
+    "id": "20231213-210139-327-3245",
+    "title": "20231213_210139 · 3:27",
+    "file": "clips/20231213-210139-327-3245.mp4",
+    "video_url": "https://photos.google.com/photo/AF1QipN_DyUcBhnT75BY1aZgx3S9XmcKNWj8qXl6a-Vj",
+    "source_label": "20231213_210139 · 3:27",
+    "tags": [
+      "Phrase"
+    ],
+    "source_id": "20231213_210139.mp4",
+    "start": 207.0,
+    "end": 210.0,
+    "added": "2026-06-19"
+  },
+  {
+    "id": "20231213-210139-418-e274",
+    "title": "20231213_210139 · 4:18",
+    "file": "clips/20231213-210139-418-e274.mp4",
+    "video_url": "https://photos.google.com/photo/AF1QipN_DyUcBhnT75BY1aZgx3S9XmcKNWj8qXl6a-Vj",
+    "source_label": "20231213_210139 · 4:18",
+    "tags": [
+      "Phrase"
+    ],
+    "source_id": "20231213_210139.mp4",
+    "start": 258.0,
+    "end": 266.0,
     "added": "2026-06-19"
   }
 ]
