@@ -267,10 +267,10 @@ def main():
                 data = json.load(f)
         except json.JSONDecodeError:
             die(f"{args.json} isn't valid JSON. Fix or delete it and retry.")
-    seen = {(e.get("source_id"), round(e.get("start", -1), 2), round(e.get("end", -1), 2))
-            for e in data}
+    seen = {(e.get("source_id"), round(e.get("start", -1), 2), round(e.get("end", -1), 2)): i
+            for i, e in enumerate(data)}
 
-    added = skipped = 0
+    added = updated = skipped = 0
     for i, job in enumerate(jobs, 1):
         tag = f"[{i}/{len(jobs)}]"
         start = parse_time(job["start"])
@@ -288,8 +288,21 @@ def main():
         source_key = os.path.basename(local_video) if local_video else fid
         key = (source_key, round(start, 2), round(end, 2))
         if not args.force and key in seen:
-            print(f"  {tag} skip (already added): {fmt_clock(start)}-{fmt_clock(end)}")
-            skipped += 1
+            existing = data[seen[key]]
+            new_title = job.get("title")
+            new_tags = job.get("tags", [])
+            title_changed = new_title and existing.get("title") != new_title
+            tags_changed = bool(new_tags) and existing.get("tags", []) != new_tags
+            if title_changed or tags_changed:
+                if title_changed:
+                    existing["title"] = new_title
+                if tags_changed:
+                    existing["tags"] = new_tags
+                updated += 1
+                print(f"  {tag} updated '{existing['title']}'")
+            else:
+                skipped += 1
+                print(f"  {tag} skip (already added): {fmt_clock(start)}-{fmt_clock(end)}")
             continue
 
         if local_video:
@@ -319,7 +332,7 @@ def main():
             "end": round(end, 2),
             "added": date.today().isoformat(),
         })
-        seen.add(key)
+        seen[key] = len(data) - 1
         added += 1
         print(f"     \u2713 {title}  ({size_kb:.0f} KB)")
 
@@ -327,7 +340,7 @@ def main():
         json.dump(data, f, indent=2, ensure_ascii=False)
         f.write("\n")
 
-    print(f"\n  Done: {added} added, {skipped} skipped, {len(data)} total.")
+    print(f"\n  Done: {added} added, {updated} updated, {skipped} skipped, {len(data)} total.")
     if added and args.publish:
         publish(added)
     elif added:
