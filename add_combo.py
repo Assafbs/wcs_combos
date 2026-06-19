@@ -209,7 +209,8 @@ def make_clip(video, start, dur, width, crf, keep_audio, slug):
     os.makedirs(os.path.join(HERE, "clips"), exist_ok=True)
     out = os.path.join(HERE, "clips", slug + ".mp4")
     cmd = ["ffmpeg", "-y", "-ss", f"{start:.3f}", "-i", video, "-t", f"{dur:.3f}",
-           "-vf", f"scale='min({width},iw)':-2", "-c:v", "libx264", "-preset", "veryfast",
+           "-vf", f"scale='min({width},iw)':-2", "-r", "30",
+           "-c:v", "libx264", "-preset", "veryfast",
            "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart"]
     cmd += (["-c:a", "aac", "-b:a", "96k"] if keep_audio else ["-an"])
     cmd += [out]
