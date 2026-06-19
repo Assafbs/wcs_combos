@@ -110,5 +110,112 @@
     "start": 258.0,
     "end": 266.0,
     "added": "2026-06-19"
+  },
+  {
+    "id": "20231213-210139-418-449a",
+    "title": "20231213_210139 · 4:18",
+    "file": "clips/20231213-210139-418-449a.mp4",
+    "video_url": "https://photos.google.com/photo/AF1QipN_DyUcBhnT75BY1aZgx3S9XmcKNWj8qXl6a-Vj",
+    "source_label": "20231213_210139 · 4:18",
+    "tags": [
+      "Phrase"
+    ],
+    "source_id": "20231213_210139.mp4",
+    "start": 258.0,
+    "end": 264.0,
+    "added": "2026-06-19"
+  },
+  {
+    "id": "vid-20231222-wa0000-308-3b5c",
+    "title": "VID-20231222-WA0000 · 3:08",
+    "file": "clips/vid-20231222-wa0000-308-3b5c.mp4",
+    "video_url": "https://photos.google.com/photo/AF1QipNm7PerlCFODutDM7NwBfeRg8L7dq7uRAW99KOO",
+    "source_label": "VID-20231222-WA0000 · 3:08",
+    "tags": [
+      "Phrase"
+    ],
+    "source_id": "VID-20231222-WA0000.mp4",
+    "start": 188.0,
+    "end": 191.0,
+    "added": "2026-06-19"
+  },
+  {
+    "id": "around-the-world-3d11",
+    "title": "Around the world",
+    "file": "clips/around-the-world-3d11.mp4",
+    "video_url": "https://photos.google.com/photo/AF1QipNm7PerlCFODutDM7NwBfeRg8L7dq7uRAW99KOO",
+    "source_label": "VID-20231222-WA0000 · 4:19",
+    "tags": [],
+    "source_id": "VID-20231222-WA0000.mp4",
+    "start": 259.0,
+    "end": 264.0,
+    "added": "2026-06-19"
+  },
+  {
+    "id": "swivels-linear-7724",
+    "title": "Swivels linear",
+    "file": "clips/swivels-linear-7724.mp4",
+    "video_url": "https://photos.google.com/photo/AF1QipNgWhj-H3dGL96Q_On2IahHVeY-gJEx8rcZ3_8A",
+    "source_label": "20240117_205756 · 0:06",
+    "tags": [],
+    "source_id": "20240117_205756.mp4",
+    "start": 6.0,
+    "end": 9.0,
+    "added": "2026-06-19"
+  },
+  {
+    "id": "swivels-rotational-2029",
+    "title": "Swivels rotational",
+    "file": "clips/swivels-rotational-2029.mp4",
+    "video_url": "https://photos.google.com/photo/AF1QipNgWhj-H3dGL96Q_On2IahHVeY-gJEx8rcZ3_8A",
+    "source_label": "20240117_205756 · 0:10",
+    "tags": [],
+    "source_id": "20240117_205756.mp4",
+    "start": 10.0,
+    "end": 14.0,
+    "added": "2026-06-19"
+  },
+  {
+    "id": "basic-promenade-0bdb",
+    "title": "Basic Promenade",
+    "file": "clips/basic-promenade-0bdb.mp4",
+    "video_url": "https://photos.google.com/photo/AF1QipO4NI58hd5gnCWaVI-pAegi3Hwbxqy-kTepb8uc",
+    "source_label": "20240124_210113 · 0:47",
+    "tags": [
+      "Promenade"
+    ],
+    "source_id": "20240124_210113.mp4",
+    "start": 47.0,
+    "end": 54.0,
+    "added": "2026-06-19"
+  },
+  {
+    "id": "20240124-210113-205-79a3",
+    "title": "20240124_210113 · 2:05",
+    "file": "clips/20240124-210113-205-79a3.mp4",
+    "video_url": "https://photos.google.com/photo/AF1QipO4NI58hd5gnCWaVI-pAegi3Hwbxqy-kTepb8uc",
+    "source_label": "20240124_210113 · 2:05",
+    "tags": [
+      "Promenade",
+      "Ronde"
+    ],
+    "source_id": "20240124_210113.mp4",
+    "start": 125.0,
+    "end": 130.0,
+    "added": "2026-06-19"
+  },
+  {
+    "id": "infinite-promenade-9923",
+    "title": "Infinite promenade",
+    "file": "clips/infinite-promenade-9923.mp4",
+    "video_url": "https://photos.google.com/photo/AF1QipO4NI58hd5gnCWaVI-pAegi3Hwbxqy-kTepb8uc",
+    "source_label": "20240124_210113 · 3:08",
+    "tags": [
+      "Promenade"
+    ],
+    "source_id": "20240124_210113.mp4",
+    "start": 188.0,
+    "end": 198.0,
+    "added": "2026-06-19"
   }
 ]
